@@ -1,0 +1,170 @@
+<?php
+include_once "TimeSpan.php";
+
+class Meeting extends TimeSpan {
+    public $start_office_hour = 8;
+    public $end_office_hour = 17;
+    public $file = '../data/freebusy.txt';
+    public $default_start_string = "2015-01-01 00:00:00";
+    public $default_end_string = "2016-01-01 00:00:00";
+
+    public $time_zone;
+    function __construct(){
+        $this -> time_zone = new DateTimeZone("UTC");
+    }
+    private function office_hours($a_day ){
+        $span = new TimeSpan();
+        $start = clone $a_day ;
+        $start -> setTime( $this->start_office_hour ,0 ,0 );
+        $span  -> start = $start;
+        $end = clone $a_day;
+        $end -> setTime( $this->end_office_hour, 0, 0 );
+        $span -> end = $end;
+        return $span;
+    }
+    private function round_start_hour( $start ){
+        //if the start minute is 00 or 30 it should be rounded to the top near value;
+        $minute = intval( $start -> format("i") );
+        if ($minute%30 !== 0) {
+            $add_minute = 30 - ($minute%30);
+            $start -> add( date_interval_create_from_date_string($add_minute.' minutes') );
+        }
+        return $start;
+    }
+
+    private function get_current_meetings_from_file($employees_id, $main_span = NULL, $file = NULL){
+        if ($file === NULL) $file = $this->file;
+        if (!file_exists($file)) {
+            error_log('The file does not exist! ',$file);
+            return array();
+        }
+        if ($main_span === NULL ) {
+            $main_span = new TimeSpan();
+            $main_span -> start = new DateTime ( $this -> default_start_string );
+            $main_span -> end = new DateTime( $this -> default_end_string );
+        }
+        $free_busy_file_rows = file($file);
+        $employees_meetings = array();
+
+        for( ; sizeof($free_busy_file_rows) > 0 ; ){
+            $row_fetched = explode(";",array_shift($free_busy_file_rows));
+            if (count($row_fetched) === 4){
+                $a_meeting = new TimeSpan();
+                $a_meeting -> start = new DateTime($row_fetched[1], $this -> time_zone);
+                $a_meeting -> end = new DateTime($row_fetched[2], $this -> time_zone);
+                $employee_id = $row_fetched[0];
+                if ( $a_meeting -> is_subset_of($main_span) && in_array($employee_id, $employees_id))  {
+                    $employees_meetings = $this -> append_employees_meetings($employees_meetings,$a_meeting,$employee_id);
+                }
+            }
+        }
+        return $employees_meetings;
+    }
+
+    public function get_suggesting_meetings( $employees_id, $limited_span, $meeting_length ){
+        //$all_employees = $this -> get_employees_from_file();
+        //echo 'test<br>';
+        $possible_meetings = $this -> get_possible_meetings($limited_span,$meeting_length);
+        //echo 'number of possible meetings: '.count($possible_meetings).'<br>';
+        //exit('@@');
+        $current_employees_meetings = $this -> get_current_meetings_from_file($employees_id, $limited_span);
+        //var_dump($current_employees_meetings);
+        $current_meetings = array ();
+
+        if ( count($current_employees_meetings) === 0 ) {
+            return $possible_meetings;
+        }
+        foreach($current_employees_meetings as $array){
+            $current_meetings = array_merge( $current_meetings , $array -> meetings  );
+        }
+
+        //echo 'number of current meetings: '.count($current_meetings).'<br>';
+        $suggesting_meetings = array();
+
+        for ($i = 0; $i < count($possible_meetings) ; $i++){
+            $meeting = new TimeSpan();
+            $meeting = $possible_meetings[$i];
+            $flag = true;
+            foreach ($current_meetings as $current_meeting){
+
+                $intersection_span = new TimeSpan();
+                $intersection_span = $meeting -> intersection_with($current_meeting);
+                if ($intersection_span -> is_span) {
+                    $flag = false;
+                    break;
+                }
+            }
+            if ($flag == true) array_push($suggesting_meetings, $meeting);
+        }
+        return $suggesting_meetings;
+    }
+    protected function append_employees_meetings($employees_meetings, $meeting, $id){
+        $employee = new stdClass();
+        $employee -> id = $id;
+        $employee -> meetings = array();
+        $id = $this -> find_id_in_employees_meetings_array($employees_meetings, $employee->id);
+        if ( $id < 0 ) {
+            array_push($employees_meetings, $employee);
+            $id = count($employees_meetings) - 1;
+        }
+        array_push($employees_meetings[$id]->meetings, $meeting);
+        return $employees_meetings;
+    }
+    protected function find_id_in_employees_meetings_array($current_meetings, $id){
+        if (count($current_meetings) === 0) return -1;
+        foreach ($current_meetings as $key => $employee)
+            if ($id == $employee->id) return $key;
+        return -1; //the id is not in the preparing array
+    }
+    private function get_possible_meetings($limited_span, $meeting_length){
+        $possible_meetings = array();
+        for ($i = 1, $each_day = $limited_span->start; ; $i++) {
+            $working_span = new TimeSpan();
+            $working_span = $this -> office_hours($each_day);
+            $each_day = $working_span -> start;
+            $intersection = new TimeSpan(); //#############
+            $intersection_span = $working_span->intersection_with($limited_span);
+            if ($intersection_span-> is_span ){
+                $new_spans_array = $this -> generate_pairs($intersection_span, $meeting_length);
+                $possible_meetings = array_merge( $possible_meetings, $new_spans_array);
+            }
+            //in case the intersection is null return the possible meetings
+            if (!$intersection_span -> is_span && ($i !== 1)) return $possible_meetings;
+            $each_day = $this -> add_time($each_day,'1 day');
+        }
+    }
+    private function generate_pairs($limited_span, $meeting_length){
+        $limited_span -> start = $this -> round_start_hour( $limited_span -> start);
+        $span_pairs = array();
+        for ( $start = $limited_span->start ; ; ){
+            $end = clone $start;
+            $end = $this -> add_time($end,$meeting_length.' minutes');
+            //checks if the $end have exceeded the $span->end; then it exits the loop and returns
+            if ($end > $limited_span -> end) return $span_pairs;
+            $pair = new TimeSpan();
+            $pair -> start = $start;
+            $pair -> end = $end;
+            array_push($span_pairs, $pair);
+            $nextStart = clone $start;
+            //next possibility can start 30 minutes later!
+            $start = $this -> add_time($nextStart, '30 minutes');
+        }
+    }
+
+    public function get_employees_from_file($file = NULL){
+        if ($file === NULL) $file = $this->file;
+        $file_rows = file($file);
+        $employees = array();
+        for($i=0; sizeof($file_rows) > 0;$i++){
+            $row_array_fetched = explode(";" ,array_shift($file_rows));
+            if( count($row_array_fetched) === 2) {
+                $employee = new stdClass();
+                $employee -> id = trim($row_array_fetched[0]);
+                $employee -> name = trim($row_array_fetched[1]);
+                array_push($employees,$employee);
+            }
+        }
+        return $employees;
+    }
+
+}
