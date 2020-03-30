@@ -1,6 +1,12 @@
 <?php
 include_once "Meeting.php";
 
+
+/**
+ * @param $request
+ * it checks if the request is one of the possible requests
+ * there are currently this 5 GET requests
+ */
 function validate_request_methods($request){
     $all_requests = array(
         "get-employees",
@@ -80,7 +86,7 @@ function set_office_hours($params){
             "message" => "invalid start/end param"
         );
     $file = fopen('../data/settings.txt',"w");
-    echo fwrite($file,$start.';'.$end);
+    fwrite($file,$start.';'.$end);
     fclose($file);
     return array(
         "message_type" => "success",
@@ -142,7 +148,7 @@ function get_current_meetings($params){
 }
 
 function get_suggestion_meetings($params) {
-    if (count($params)!= 5)
+    if (count($params)!= 6)
         return array(
             "message_type" => "error",
             "message" => "invalid request",
