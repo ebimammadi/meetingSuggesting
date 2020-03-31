@@ -53,8 +53,6 @@
       <div class="col-12">
         <div><h4>layout will be added here</h4></div>
         <div v-html="days"></div>
-<!--        <div><br><br>current array: {{currentMeetings}}</div>-->
-<!--        <div>suggestion array: {{suggestMeetings}}</div>-->
       </div>
 
 
@@ -181,24 +179,7 @@
         //console.log (extractDaysMeeting(startDate))
         this.days =  hoursCaptions() + results
 
-        // for (let i = 1 ; i <= days_count ; i++ ){
-        //   console.log(employeesWithColors)
-        //   //construct each day
-        // }
 
-        //
-        //console.log(this.hoursCaptions())
-
-        // this.days = hoursCaptions()
-        //   +`<div class="row-hours" >
-        //     <div style="background-color: red;width: 20vw;left:20vw;" class="timeSpan" ></div>
-        //     <div style="background-color: lightblue;width: 10vw;left:40vw;" class="timeSpan" ></div>
-        //     <div style="background-color: teal;width: 20vw;left:25vw;" class="timeSpan" ></div>
-        //     <div style="background-color: gold;width: 20vw;left:45vw;" class="timeSpan" ></div>
-        //   </div>`
-        // //this.days += this.day
-        console.log('show')
-        //console.log(this.days)
       }
       //construct each day
     },
