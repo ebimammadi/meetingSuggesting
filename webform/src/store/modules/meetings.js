@@ -47,8 +47,19 @@ const actions = {
     `https://tadbir.net/tests/meetings/api/?request=get-current-meetings&timezone=UTC`
       + ids + start + end
     )
-
+    // const meeting_length = 35
+    const meeting_length = `&meeting_length=60`
     commit('setCurrentMeetings', response.data)
+
+    const response2 = await axios.get(
+      `https://tadbir.net/tests/meetings/api/?request=get-suggestion-meetings&timezone=UTC`
+      + ids + start + end + meeting_length
+    )
+
+    commit('setSuggestionMeetings', response2.data)
+    //params.meeting_length = 35
+    //actions.fetchSuggestMeetings({ commit }, params)
+
   },
   async fetchSuggestMeetings({ commit }, params) {
 
