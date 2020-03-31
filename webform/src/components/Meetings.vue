@@ -46,7 +46,7 @@
 <!--      </div>-->
       <div class="col-6 col-sm-4 col-md-3 col-xl-2 ">
         <br>
-        <b-button variant="outline-primary" @click="getCurrentMeetings" >SuggestMeetings</b-button>
+        <b-button variant="outline-primary" @click="getSuggestions" >SuggestMeetings</b-button>
       </div>
     </div>
     <div class="row">
@@ -86,29 +86,31 @@
       ...mapActions([//spread to add other functions
         "fetchEmployees",
         "fetchOfficeHours",
-        "fetchCurrentMeetings",
         "fetchSuggestMeetings",
+        "fetchSuggestMeetings2",
         "updatedEmployeesSelected"
       ]),
-      getSuggestions(){
+      getSuggestions2(){
         const params = {
           start: this.start,
           end: this.end,
           meeting_length: this.meeting_length,
           employee_ids: this.selectedEmployees
         };
-        this.fetchSuggestMeetings(params)
+        this.fetchSuggestMeetings2(params)
       },
-      getCurrentMeetings(){
+      getSuggestions(){
         const params = {
           start: this.start,
           end: this.end,
-          employee_ids: this.selectedEmployees
+          employee_ids: this.selectedEmployees,
+          meeting_length: this.meeting_length
+          //func : showCurrentMeetings
         };
-        this.fetchCurrentMeetings(params)
+        this.fetchSuggestMeetings(params)
       },
 
-      showCurrentMeetings(){
+      showSuggestMeetings(){
         //
         const viewportWidth = 95
         const offsetWidth = 10
@@ -187,9 +189,9 @@
       ...mapGetters([ "allEmployees" , "officeHours","currentMeetings","suggestMeetings","selectedEmployees"]),
     },
     watch: {
-      currentMeetings: function(){
-        console.log('tes')
-        this.showCurrentMeetings()
+      suggestMeetings: function(){
+        console.log('test')
+        this.showSuggestMeetings()
       }
     },
     created(){
@@ -199,6 +201,7 @@
 
   }
 </script>
+
 <!--damn scoped! -->
 <style >
 

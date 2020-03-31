@@ -33,7 +33,7 @@ const actions = {
     )
     commit('setOfficeHours', response.data)
   },
-  async fetchCurrentMeetings({ commit }, params) {
+  async fetchSuggestMeetings({ commit }, params) {
 
     const start = `&start=${params.start} 00:00:00`;
     const end = `&end=${params.end} 23:59:00`;
@@ -43,13 +43,13 @@ const actions = {
       ids += `&ids[]=${params.employee_ids[i].id}`
     }
 
-    const response = await axios.get(
-    `https://tadbir.net/tests/meetings/api/?request=get-current-meetings&timezone=UTC`
-      + ids + start + end
-    )
+    // const response = await axios.get(
+    // `https://tadbir.net/tests/meetings/api/?request=get-current-meetings&timezone=UTC`
+    //   + ids + start + end
+    // )
     // const meeting_length = 35
-    const meeting_length = `&meeting_length=60`
-    commit('setCurrentMeetings', response.data)
+    const meeting_length = `&meeting_length=${params.meeting_length}`
+    // commit('setCurrentMeetings', response.data)
 
     const response2 = await axios.get(
       `https://tadbir.net/tests/meetings/api/?request=get-suggestion-meetings&timezone=UTC`
@@ -61,7 +61,7 @@ const actions = {
     //actions.fetchSuggestMeetings({ commit }, params)
 
   },
-  async fetchSuggestMeetings({ commit }, params) {
+  async fetchSuggestMeetings2({ commit }, params) {
 
     const start = `&start=${params.start} 00:00:00`;
     const end = `&end=${params.end} 23:59:00`;
