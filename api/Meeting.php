@@ -14,6 +14,8 @@ class Meeting extends TimeSpan {
 
     public $time_zone;
 
+    private $ppp = array();
+
     function __construct(){
         $this -> time_zone = new DateTimeZone("UTC");
     }
@@ -103,6 +105,12 @@ class Meeting extends TimeSpan {
         $possible_meetings = $this -> get_possible_meetings($limited_span,$meeting_length);
         $current_employees_meetings = $this -> get_current_meetings_from_file($employees_id, $limited_span);
         $current_meetings = array ();
+        //var_dump($possible_meetings);
+       // exit ();
+//        echo '<pre>';
+
+//        echo '</pre>';
+//        exit();
 
         if ( count($current_employees_meetings) === 0 ) {
             return $possible_meetings;
@@ -158,23 +166,30 @@ class Meeting extends TimeSpan {
     }
 
 
-    private function get_possible_meetings($limited_span, $meeting_length){
-        $possible_meetings = array();
-        for ($i = 1, $each_day = $limited_span->start; ; $i++) {
-            $working_span = new TimeSpan();
-            $working_span = $this -> office_hours($each_day);
-            $each_day = $working_span -> start;
-            $intersection = new TimeSpan();
-            $intersection_span = $working_span->intersection_with($limited_span);
-            if ($intersection_span-> is_span ){
-                $new_spans_array = $this -> generate_pairs($intersection_span, $meeting_length);
-                $possible_meetings = array_merge( $possible_meetings, $new_spans_array);
+    /**
+     * @param $main_span TimeSpan     is the span for generating raw possible meetings
+     * @param $meeting_length Integer is the length of proposed meetings
+     * @return array returns an array of possible meetings
+     */
+    function get_possible_meetings($main_span, $meeting_length){
+        $meetings = array();
+        for ( $i = 1, $day_start = $main_span->start; ; $i++) {
+            $workingSpan = $this->office_hours($day_start);
+            $day_start = clone $workingSpan->start;
+            $intersection = new stdClass(); //#############
+            $intersection = $this->get_intersection($workingSpan, $main_span);
+            if ($intersection->is_span ){
+                $pairs = $this->generate_pairs($intersection, $meeting_length);
+                $meetings = array_merge($meetings, $pairs);
             }
-            //in case the intersection is null return the possible meetings
-            if (!$intersection_span -> is_span && ($i !== 1)) return $possible_meetings;
-            $each_day = $this -> add_time($each_day,'1 day');
+            if ((!$intersection ->is_span ) && ($i !== 1)) { //in case the intersection is null return the possible meetings
+                return $meetings;
+            }
+            $day_start->add(date_interval_create_from_date_string('1 day'));
         }
     }
+
+
     private function generate_pairs($limited_span, $meeting_length){
         $limited_span -> start = $this -> round_start_hour( $limited_span -> start);
         $span_pairs = array();
