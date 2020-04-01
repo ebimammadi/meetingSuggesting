@@ -48,6 +48,10 @@
         <br>
         <b-button variant="outline-primary" @click="getSuggestions" >SuggestMeetings</b-button>
       </div>
+      <div class="col-6 col-sm-8 col-md-9 col-xl-10 ">
+        <br/>
+        <div v-html="message"></div>
+      </div>
     </div>
     <div class="row">
       <div class="col-12">
@@ -79,7 +83,8 @@
         meeting_length: 60,
         span_days: [],
         days: ``,
-
+        message: '',
+        messageShow : false
       }
     },
     methods: {
@@ -90,6 +95,21 @@
         "fetchSuggestMeetings2",
         "updatedEmployeesSelected"
       ]),
+      prepareAlerts(message,type = null){
+        if (type == null) type = 'alert-dark'
+        return `<div class="alert ${type} alert-dismissible fade show" role="alert" >
+                  ${message}
+                </div>`
+        // return `<b-alert variant="${type}" dismissible>
+        //         ${message}
+        //         </b-alert>`;
+// <div class="alert ${type} alert-dismissible fade show" role="alert">
+//                   ${message}
+//                   <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+//                     <span aria-hidden="true">&times;</span>
+//                   </button>
+//                 </div>`
+      },
       getSuggestions2(){
         const params = {
           start: this.start,
@@ -100,6 +120,18 @@
         this.fetchSuggestMeetings2(params)
       },
       getSuggestions(){
+        this.message = ""
+        if (this.selectedEmployees.length == 0){
+          this.message = this.prepareAlerts("Please select at least one Employee!")
+          return false
+        }
+
+        const start = new Date(this.start)
+        const end = new Date(this.end)
+        if (start > end) {
+          this.message = this.prepareAlerts("End should be after than start!")
+          return false
+        }
         const params = {
           start: this.start,
           end: this.end,
@@ -122,14 +154,15 @@
             let leftAttr = (hour_width)*(i-this.officeHours.start)+offsetWidth
             divsHours += `<div class="timeSpan" style="left:${leftAttr}vw; width:${hour_width}vw">${i}</div>`
           }
-          return `<div class="row-header-hours">Hours ${divsHours} </div>`
+          return `<div class="row-header-hours">Days ${divsHours} </div>`
         };
         const extractDaysMeeting = (oneDate) => {
           const sameDate = (date1,date2) => {
+            console.log(date1.getDate(),date2.getDate())
             if (
               date1.getFullYear() == date2.getFullYear() &&
               date1.getMonth() == date2.getMonth() &&
-              date1.getDay() == date2.getDay()
+              date1.getDate() == date2.getDate()
             )
               return true;
             return false;
@@ -236,8 +269,8 @@
   box-sizing: border-box;
 }
 .classGreen {
-  background-color: green;
-  border: 1px solid green;
+  background-color: lightgreen;
+  border: 1px solid darkgreen;
 }
 
 
