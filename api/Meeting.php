@@ -158,6 +158,7 @@ class Meeting extends TimeSpan {
     }
 
 
+
     /**
      * @param $main_span TimeSpan     is the span for generating raw possible meetings
      * @param $meeting_length Integer is the length of proposed meetings
@@ -214,13 +215,22 @@ class Meeting extends TimeSpan {
         for($i=0; sizeof($file_rows) > 0;$i++){
             $row_array_fetched = explode(";" ,array_shift($file_rows));
             if( ( count($row_array_fetched) === 2) && (trim($row_array_fetched[1]) != "") ) {
-                $employee = new stdClass();
-                $employee -> id = trim($row_array_fetched[0]);
-                $employee -> name = trim($row_array_fetched[1]);
-                array_push($employees,$employee);
+                $id = $this -> find_in_employees_array($employees, trim($row_array_fetched[0]), trim($row_array_fetched[1]));
+                if ($id<0) {//don't add duplicates
+                    $employee = new stdClass();
+                    $employee->id = trim($row_array_fetched[0]);
+                    $employee->name = trim($row_array_fetched[1]);
+                    array_push($employees, $employee);
+                }
             }
         }
         return $employees;
     }
 
+    private function find_in_employees_array($employees, $id,$name){
+        if (count($employees) === 0) return -1;
+        foreach ($employees as $key => $employee)
+            if ( ($id == $employee->id) || ($name == $employee->name)) return $key;
+        return -1; //the id is not in the preparing array
+    }
 }
