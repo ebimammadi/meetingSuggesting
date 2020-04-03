@@ -43,8 +43,7 @@ This API accepts 5 requests:
 "date": "2015-03-13 13:00:00.000000",
 "timezone_type": 3,
 "timezone": "UTC"
-},
-"is_span": true
+}
 }
 ]
 },...]` Please see the online api
@@ -64,8 +63,7 @@ This API accepts 5 requests:
 "date": "2015-03-12 16:20:00.000000",
 "timezone_type": 3,
 "timezone": "UTC"
-},
-"is_span": true
+}
 },`
 
  ## Other notes 
