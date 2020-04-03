@@ -1,5 +1,8 @@
 import axios from 'axios'
 
+// axios.defaults.baseURL = 'http://janjoo/api/'
+axios.defaults.baseURL = 'https://tadbir.net/tests/meetings/api/'
+
 const state = {
   office_hours: null,
   employees: [],
@@ -14,7 +17,6 @@ const getters = {
   officeHours: state => state.office_hours,
   currentMeetings: state => state.current_meetings,
   suggestMeetings: state => state.suggestion_meetings
-
 }
 
 const actions = {
@@ -23,13 +25,13 @@ const actions = {
   },
   async fetchEmployees({ commit }) {
     const response = await axios.get(
-      'https://tadbir.net/tests/meetings/api/?request=get-employees'
+      '?request=get-employees'
     )
     commit('setEmployees', response.data)
   },
   async fetchOfficeHours({ commit }) {
     const response = await axios.get(
-      'https://tadbir.net/tests/meetings/api/?request=get-office-hours'
+      '?request=get-office-hours'
     )
     commit('setOfficeHours', response.data)
   },
@@ -46,7 +48,7 @@ const actions = {
     const meeting_length = `&meeting_length=${params.meeting_length}`
 
     const response = await axios.get(
-      `https://tadbir.net/tests/meetings/api/?request=get-suggestion-meetings&timezone=UTC`
+      `?request=get-suggestion-meetings&timezone=UTC`
       + ids + start + end + meeting_length
     )
 
@@ -63,7 +65,7 @@ const actions = {
     }
 
     const response = await axios.get(
-    `https://tadbir.net/tests/meetings/api/?request=get-current-meetings&timezone=UTC`
+    `?request=get-current-meetings&timezone=UTC`
       + ids + start + end
     )
 
