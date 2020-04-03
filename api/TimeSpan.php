@@ -9,15 +9,10 @@ class TimeSpan {
     /**
      * @var $start DateTime
      * @var $end DateTime
-     * @var $is_span bool by default a span is true, if it is null it is set to false
      */
     public $start;
     public $end;
-    public $is_span;
 
-    function __construct(){
-        $this -> is_span = true;
-    }
     /**
      * is_valid() checks two conditions:
      * 1. the $start & $end to be of type DateTime
@@ -25,11 +20,23 @@ class TimeSpan {
      * @return bool
      */
     public function is_valid(){
-        if (!$this -> is_span) return false;
         if (!is_a($this->start,"DateTime") || !is_a($this->end,"DateTime") )  return false;
         if ( $this -> start >= $this -> end) return false;
-        if ( $this -> start < $this -> end) return true;
+        return true;
     }
+
+    /**
+     * is_null() returns true under one of these conditions, otherwise it returns false:
+     * 1. the TimeSpan is not valid (it returns true)
+     * 2. th $start and $end are equal (it returns true)
+     * @return bool
+     */
+    public function is_null(){
+        if (!$this -> is_valid()) return true;
+        if ( $this -> start == $this -> end) return true;
+        return false;
+    }
+
 
     /**
      * it receives a TimeSpan as $span and checks if it is a subset of $this
@@ -45,7 +52,7 @@ class TimeSpan {
     /**
      * It receives a TimeSpan as $span and if it has an intersection it returns the intersection
      * It actually tries to find the spans' overlaps and return it
-     * if they have not any intersection it returns a TimeSpan with $is_span false
+     * if they have not any intersection it returns a TimeSpan with $start & $end the dame
      * @param $span TimeSpan
      * @return $this|TimeSpan
      */
@@ -61,7 +68,7 @@ class TimeSpan {
 
         if ( ($spanB -> start <= $spanA -> start) && ($spanB -> end <= $spanA -> end) ) {
             if ($spanB -> end == $spanA -> start) {
-                $spanA -> is_span = false;
+                $spanA -> end = $spanA -> start; //set to a null span
                 return $spanA;
             }
             if ($spanB -> end > $spanA -> start) {
@@ -72,7 +79,7 @@ class TimeSpan {
 
         if ( ($spanA -> start <= $spanB -> start) && ($spanA -> end <= $spanB -> end) ) {
             if ($spanA -> end == $spanB -> start) {
-                $spanA -> is_span = false;
+                $spanA -> end = $spanA -> start; //set to a null span
                 return $spanA;
             }
             if ($spanA -> end > $spanB -> start) {
@@ -81,7 +88,39 @@ class TimeSpan {
             }
         }
 
-        $spanA -> is_span = false;
+        $spanA -> end = $spanA -> start; //set to a null span
+        return $spanA;
+    }
+    public function intersection_with_0($span){
+
+        if (!$this -> is_valid()) return $this;
+        if (!$span -> is_valid()) return $span;
+
+        $spanA = clone $this;
+        $spanB = clone $span;
+        if ( $spanA -> is_subset_of($spanB) ) return $spanA;
+        if ( $spanB -> is_subset_of($spanA) ) return $spanB;
+
+        if ( ($spanB -> start <= $spanA -> start) && ($spanB -> end <= $spanA -> end) ) {
+            if ($spanB -> end == $spanA -> start) {
+                return $spanA;
+            }
+            if ($spanB -> end > $spanA -> start) {
+                $spanA->end = $spanB->end;
+                return $spanA;
+            }
+        }
+
+        if ( ($spanA -> start <= $spanB -> start) && ($spanA -> end <= $spanB -> end) ) {
+            if ($spanA -> end == $spanB -> start) {
+                return $spanA;
+            }
+            if ($spanA -> end > $spanB -> start) {
+                $spanB->end = $spanA->end;
+                return $spanB;
+            }
+        }
+
         return $spanA;
     }
 

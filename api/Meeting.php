@@ -14,8 +14,6 @@ class Meeting extends TimeSpan {
 
     public $time_zone;
 
-    private $ppp = array();
-
     function __construct(){
         $this -> time_zone = new DateTimeZone("UTC");
     }
@@ -54,7 +52,6 @@ class Meeting extends TimeSpan {
         }
         return $start;
     }
-
 
     /**
      * @param $employees_id array this is the array of employees to query in freebusy file,
@@ -105,12 +102,6 @@ class Meeting extends TimeSpan {
         $possible_meetings = $this -> get_possible_meetings($limited_span,$meeting_length);
         $current_employees_meetings = $this -> get_current_meetings_from_file($employees_id, $limited_span);
         $current_meetings = array ();
-        //var_dump($possible_meetings);
-       // exit ();
-//        echo '<pre>';
-
-//        echo '</pre>';
-//        exit();
 
         if ( count($current_employees_meetings) === 0 ) {
             return $possible_meetings;
@@ -128,13 +119,14 @@ class Meeting extends TimeSpan {
             foreach ($current_meetings as $current_meeting){
                 $intersection_span = new TimeSpan();
                 $intersection_span = $meeting -> intersection_with($current_meeting);
-                if ($intersection_span -> is_span) {
+                if ($intersection_span -> is_valid()) {
                     $flag = false;
                     break;
                 }
             }
             if ($flag == true) array_push($suggesting_meetings, $meeting);
         }
+
         return $suggesting_meetings;
     }
 
@@ -177,12 +169,13 @@ class Meeting extends TimeSpan {
             $workingSpan = $this->office_hours($day_start);
             $day_start = clone $workingSpan->start;
             $intersection = new stdClass(); //#############
-            $intersection = $this->get_intersection($workingSpan, $main_span);
-            if ($intersection->is_span ){
+            //$intersection = $this->get_intersection($workingSpan, $main_span);
+            $intersection = $workingSpan->intersection_with( $main_span);
+            if ($intersection-> is_valid() ){
                 $pairs = $this->generate_pairs($intersection, $meeting_length);
                 $meetings = array_merge($meetings, $pairs);
             }
-            if ((!$intersection ->is_span ) && ($i !== 1)) { //in case the intersection is null return the possible meetings
+            if ((!$intersection -> is_valid() ) && ($i !== 1)) { //in case the intersection is null return the possible meetings
                 return $meetings;
             }
             $day_start->add(date_interval_create_from_date_string('1 day'));
@@ -209,7 +202,6 @@ class Meeting extends TimeSpan {
             $start = $this -> add_time($nextStart, '30 minutes');
         }
     }
-
 
     /**
      * @param  $file string is the filepath of freebusy.txt
