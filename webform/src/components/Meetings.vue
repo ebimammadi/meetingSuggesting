@@ -164,15 +164,29 @@
               return true;
             return false;
           };
+          //this method is for the fix of date for safari javascript engine
+          const getDateFromString = (dateString) => {
+            const parts = dateString.split(' ')
+            const daysParts = parts[0].split('-')
+            const year = Number(daysParts[0])
+            const month = Number(daysParts[1])-1;
+            const day = Number(daysParts[2])
+
+            const timeParts = parts[1].split( ':')
+            const hour = Number(timeParts[0])
+            const minutes = Number(timeParts[1])
+
+            return new Date(year,month,day,hour,minutes,0)
+          }
           const difference_hours = Number(this.officeHours.end) - Number(this.officeHours.start)
           const oneHourWidth = (viewportWidth-offsetWidth) / difference_hours
           const officeHourStart = Number(this.officeHours.start)
 
           let divsHours = ``
           this.suggestMeetings.forEach(meeting => {
-            const meetingStart = new Date (meeting.start.date)
+            const meetingStart = getDateFromString( meeting.start.date)
             if (sameDate(meetingStart,oneDate)) {
-              const meetingEnd = new Date(meeting.end.date)
+              const meetingEnd = getDateFromString( meeting.end.date)
               const length = (meetingEnd - meetingStart) / 60000 * oneHourWidth / 30/2
               const meetingStartHour = meetingStart.getHours() + meetingStart.getMinutes() / 60
               const leftAttr = (oneHourWidth) * (meetingStartHour - officeHourStart) + offsetWidth
