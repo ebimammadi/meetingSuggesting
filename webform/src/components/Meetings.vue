@@ -91,15 +91,7 @@
         return `<div class="alert ${type} alert-dismissible fade show" role="alert" >
                   ${message}
                 </div>`
-        // return `<b-alert variant="${type}" dismissible>
-        //         ${message}
-        //         </b-alert>`;
-// <div class="alert ${type} alert-dismissible fade show" role="alert">
-//                   ${message}
-//                   <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-//                     <span aria-hidden="true">&times;</span>
-//                   </button>
-//                 </div>`
+
       },
       getCurrentMeetings(){
         const params = {
@@ -187,7 +179,11 @@
               divsHours += `<div class="timeSpan classGreen" style="left:${leftAttr}vw; width:${length}vw"></div>`
             }
           });
-          return `<div class="row-hours"> <span class="date-caption">${weekDayName(oneDate.getDay())} ${oneDate.getMonth()+1}/${oneDate.getDate()} </span> ${divsHours} </div>`
+          return `<div class="row-hours">` +
+            `<span class="date-caption">` +
+            `${weekDayName(oneDate.getDay())} ${oneDate.getMonth()+1}/${oneDate.getDate()}` +
+            `</span>`+
+            `${divsHours} </div>`
         }
 
         const startDate = new Date(this.start);
@@ -201,7 +197,6 @@
         }
         this.days =  hoursCaptions() + daysResults
       }
-      //construct each day
     },
     computed: {
       ...mapGetters([ "allEmployees" , "officeHours","currentMeetings","suggestMeetings","selectedEmployees"]),
